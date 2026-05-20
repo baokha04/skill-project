@@ -62,3 +62,11 @@ Upon successful completion, this skill creates:
 3. **`docs/ARCHITECTURE.md`**: Maps out the detected folder boundaries, codebase ratios, and design principles.
 4. **`docs/FEATURE_INTAKE.md`**: A decision matrix helping humans and agents classify work scope and risks.
 5. **`docs/TEST_MATRIX.md`**: A control panel mapping behaviors to proofs and validation status.
+
+## /grill-me and /goal mode hepler 
+```bash
+# /grill-me mode: "we are going to implement [feature name or task name], grill me."
+# You have to approve by replaying "grill me" again.
+# After finish, approve: "use it as our next goal and set_goals" to save it into our harness docs.
+# /goal mode
+```
