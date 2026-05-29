@@ -52,13 +52,24 @@ Identify if conflict paths (`AGENTS.md`, `docs/`, `scripts/`) already exist in t
 - **Override (`--override`)**: Move existing `AGENTS.md`, `docs/`, and `scripts/` paths into a dated folder inside `.harness-backup/` and replace them with fresh harness templates.
 - **Stop (`--stop`)**: Refuse to install if any conflict path is found.
 
+### Windows Compatibility & Prerequisites
+
+On Windows OS, standard `bash` commands can execute inside a misconfigured or broken WSL environment, producing the error `execvpe(/bin/bash) failed`. To ensure a seamless installation and database management experience:
+
+1. **Use Git Bash directly**: Instead of running `bash`, invoke Git Bash's executable `bash.exe` via PowerShell. It is natively installed with Git for Windows at `C:\Program Files\Git\bin\bash.exe`.
+2. **Install SQLite**: If you do not have SQLite installed (required by the pure-shell database fallback), run:
+   ```powershell
+   winget install sqlite.sqlite
+   ```
+   This will install `sqlite3` globally and add it to your `PATH` automatically.
+
 ### Step 3: Run the Scaffolding Script
 
 You can execute the offline installer script packaged inside this skill:
 
 ```powershell
-# In PowerShell (Windows)
-bash ".agents/skills/init-harness-experimental/scripts/install-harness.sh" --directory "C:\Path\To\Target\Project" --yes --merge
+# In PowerShell (Windows) - bypasses broken WSL environments by targeting Git Bash directly
+& "C:\Program Files\Git\bin\bash.exe" ".agents/skills/init-harness-experimental/scripts/install-harness.sh" --directory "C:\Path\To\Target\Project" --yes --merge
 ```
 
 ```bash
@@ -66,9 +77,10 @@ bash ".agents/skills/init-harness-experimental/scripts/install-harness.sh" --dir
 bash ".agents/skills/init-harness-experimental/scripts/install-harness.sh" --directory "/path/to/target/project" --yes --merge
 ```
 
-Alternatively, you can pull and execute the installer remotely via GitHub:
+Alternatively, you can pull and execute the installer remotely via GitHub (using Git Bash on Windows):
 
 ```bash
+# Inside Git Bash on Windows, or standard Bash on Linux/macOS
 curl -fsSL "https://raw.githubusercontent.com/hoangnb24/harness-experimental/main/scripts/install-harness.sh" | bash -s -- --directory "/path/to/target/project" --yes --merge
 ```
 
@@ -86,18 +98,44 @@ curl -fsSL "https://raw.githubusercontent.com/hoangnb24/harness-experimental/mai
 
 After running the installer script, initialize the database and import any existing markdown table states:
 
-```bash
-# Initialize the SQLite database and apply the schema
-bash scripts/harness init
+```powershell
+# In PowerShell (Windows)
+& "C:\Program Files\Git\bin\bash.exe" scripts/harness init
+& "C:\Program Files\Git\bin\bash.exe" scripts/harness import brownfield
+```
 
-# Seed or refresh the database from existing markdown files (TEST_MATRIX, decisions, backlog)
+```bash
+# In Bash (Linux/macOS)
+bash scripts/harness init
 bash scripts/harness import brownfield
 ```
 
 ### Common CLI Operations
 
-Agents and humans should interact with the harness database using `scripts/harness`:
+Agents and humans should interact with the harness database using the `scripts/harness` script.
 
+**On Windows (PowerShell):**
+```powershell
+# Query the story validation matrix
+& "C:\Program Files\Git\bin\bash.exe" scripts/harness query matrix
+
+# Query the backlog of harness improvements
+& "C:\Program Files\Git\bin\bash.exe" scripts/harness query backlog
+
+# Query summary counts of all harness records
+& "C:\Program Files\Git\bin\bash.exe" scripts/harness query stats
+
+# Record a feature intake classification
+& "C:\Program Files\Git\bin\bash.exe" scripts/harness intake --type "spec_slice" --summary "Add auth module" --lane "normal"
+
+# Update story status and validation proofs
+& "C:\Program Files\Git\bin\bash.exe" scripts/harness story update --id "US-001" --status "implemented" --unit 1 --integration 1
+
+# Record an agent execution trace
+& "C:\Program Files\Git\bin\bash.exe" scripts/harness trace --summary "Completed auth setup" --outcome "completed" --duration 120
+```
+
+**On Linux/macOS (Bash):**
 ```bash
 # Query the story validation matrix
 bash scripts/harness query matrix
@@ -105,17 +143,8 @@ bash scripts/harness query matrix
 # Query the backlog of harness improvements
 bash scripts/harness query backlog
 
-# Query summary counts of all harness records
-bash scripts/harness query stats
-
 # Record a feature intake classification
 bash scripts/harness intake --type "spec_slice" --summary "Add auth module" --lane "normal"
-
-# Update story status and validation proofs
-bash scripts/harness story update --id "US-001" --status "implemented" --unit 1 --integration 1
-
-# Record an agent execution trace
-bash scripts/harness trace --summary "Completed auth setup" --outcome "completed" --duration 120
 ```
 
 ## Safety and Best Practices
